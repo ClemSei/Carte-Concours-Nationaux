@@ -29,7 +29,7 @@ page = st.sidebar.radio("Navigation", ["Analyse des Concours", "Informations"])
 # PAGE 1 : ANALYSE DES CONCOURS
 # ---------------------------------------------------------
 if page == "Analyse des Concours":
-    st.title("🗺️ Analyse d'Éligibilité - Concours Nationaux")
+    st.title("Concours Nationaux jouables")
 
     # --- BARRE LATÉRALE ---
     st.sidebar.header("1. Recherche Pigeonnier")
@@ -105,8 +105,8 @@ if page == "Analyse des Concours":
     col_map, col_details = st.columns([3, 1])
 
     with col_map:
-        start_loc = point_recherche if point_recherche else [48.0, 2.0]
-        start_zoom = 7 if point_recherche else 5
+        start_loc = point_recherche if point_recherche else [46.0, 2.0]
+        start_zoom = 7 if point_recherche else 6
         m = folium.Map(location=start_loc, zoom_start=start_zoom)
 
         def generer_arc_nord(centre_lat, centre_lon, rayon_metres):
@@ -117,15 +117,29 @@ if page == "Analyse des Concours":
             return coords
 
         for p in active_points:
+            # 1. AJOUT DU POINT DE LÂCHÉ (Le marqueur)
+            folium.Marker(
+                location=[p['lat'], p['lon']],
+                popup=f"Lieu de lâché : {p['nom']}",
+                tooltip=p['nom'],
+                icon=folium.Icon(color=p['coul'], icon="info-sign")
+            ).add_to(m)
+
+            # 2. AJOUT DE L'ARC DE CERCLE (La limite des 490km)
             points_arc = generer_arc_nord(p['lat'], p['lon'], p['rayon'])
             folium.PolyLine(
-                locations=points_arc, color=p['coul'], weight=4, opacity=0.9,
+                locations=points_arc, 
+                color=p['coul'], 
+                weight=4, 
+                opacity=0.9,
                 tooltip=f"Ligne {p['nom']} ({p['rayon']/1000} km)"
             ).add_to(m)
 
+        # Marqueur pour le pigeonnier de l'utilisateur
         if point_recherche:
             folium.Marker(
-                point_recherche, popup=label_position,
+                point_recherche, 
+                popup=label_position,
                 icon=folium.Icon(color="black", icon="home")
             ).add_to(m)
 
